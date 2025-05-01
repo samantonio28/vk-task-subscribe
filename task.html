@@ -1,0 +1,117 @@
+<p class="question-text">
+<p><span>&nbsp;</span>Задание состоит из 2х частей.<br>
+    <br>
+    1. В первой части требуется реализовать пакет subpub.&nbsp;В этой части задания нужно написать простую шину событий,
+    работающую по принципу&nbsp;<strong>Publisher-Subscriber.</strong><br>
+    Требования к шине:
+</p>
+
+<ul>
+    <li>
+        <p>На один subject может подписываться (и отписываться) множество подписчиков.</p>
+    </li>
+    <li>
+        <p>Один медленный подписчик не должен тормозить остальных.</p>
+    </li>
+    <li>
+        <p>Нельзя терять порядок порядок сообщений (FIFO очередь).</p>
+    </li>
+    <li>
+        <p>Метод Close должен учитывать переданный контекст. Если он отменен - выходим сразу, работающие хендлеры
+            оставляем работать.</p>
+    </li>
+    <li>
+        <p>Горутины (если они будут) течь не должны.</p>
+    </li>
+</ul>
+Ниже представлен API пакета subpub.
+
+<pre><code class="language-go hljs"><span class="hljs-keyword">package</span> subpub
+    
+    <span class="hljs-keyword">import</span> <span class="hljs-string">"context"</span>
+    
+    <span class="hljs-comment">// MessageHandler is a callback function that processes messages delivered to subscribers.</span>
+    <span class="hljs-keyword">type</span> MessageHandler <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(msg <span class="hljs-keyword">interface</span>{})</span></span>
+    
+    <span class="hljs-keyword">type</span> Subscription <span class="hljs-keyword">interface</span> {
+        <span class="hljs-comment">// Unsubscribe will remove interest in the current subject subscription is for.</span>
+        Unsubscribe()
+    }
+    
+    <span class="hljs-keyword">type</span> SubPub <span class="hljs-keyword">interface</span> {
+        <span class="hljs-comment">// Subscribe creates an asynchronous queue subscriber on the given subject.</span>
+        Subscribe(subject <span class="hljs-type">string</span>, cb MessageHandler) (Subscription, <span class="hljs-type">error</span>)
+    
+        <span class="hljs-comment">// Publish publishes the msg argument to the given subject.</span>
+        Publish(subject <span class="hljs-type">string</span>, msg <span class="hljs-keyword">interface</span>{}) <span class="hljs-type">error</span>
+    
+        <span class="hljs-comment">// Close will shutdown sub-pub system.</span>
+        <span class="hljs-comment">// May be blocked by data delivery until the context is canceled.</span>
+        Close(ctx context.Context) <span class="hljs-type">error</span>
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">NewSubPub</span><span class="hljs-params">()</span></span> SubPub {
+        <span class="hljs-built_in">panic</span>(<span class="hljs-string">"Implement me"</span>)
+    }</code></pre>
+<br>
+К заданию очень рекомендуется написать unit-тесты.<br>
+<br>
+<br>
+2. Во второй части задания требуется с использованием пакета subpub из 1 части реализовать сервис подписок. Сервис
+работает по gRPC. Есть возможность подписаться на события по ключу и опубликовать события по ключу для всех
+подписчиков.<br>
+<br>
+Protobuf-схема gRPC сервиса:
+<pre><code class="hljs language-java"><span class="hljs-keyword">import</span> <span class="hljs-string">"google/protobuf/empty.proto"</span>;
+    
+    syntax = <span class="hljs-string">"proto3"</span>;
+    
+    service PubSub {
+      <span class="hljs-comment">// Подписка (сервер отправляет поток событий)</span>
+      rpc <span class="hljs-title function_">Subscribe</span><span class="hljs-params">(SubscribeRequest)</span> returns (stream Event);
+    
+      <span class="hljs-comment">// Публикация (классический запрос-ответ)</span>
+      rpc <span class="hljs-title function_">Publish</span><span class="hljs-params">(PublishRequest)</span> returns (google.protobuf.Empty);
+    }
+    
+    message SubscribeRequest {
+      <span class="hljs-type">string</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;
+    }
+    
+    message PublishRequest {
+      <span class="hljs-type">string</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;
+      <span class="hljs-type">string</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;
+    }
+    
+    message Event {
+      <span class="hljs-type">string</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;
+    }
+    </code></pre>
+
+<p>Также пользуйся стандартными статус-кодами gRPC из пакетов&nbsp;<code
+        class="hljs language-bash">google.golang.org/grpc/status</code>&nbsp;и&nbsp;<code class="hljs language-bash">google.golang.org/grpc/codes в качестве критериев успешности и неуспешности запросов к сервису.
+    
+    Что еще ожидается в решении:</code></p>
+
+<ul>
+    <li>
+        <p>Обязательно должно быть описание того, как работает сервис и как его собирать.</p>
+    </li>
+    <li>
+        <p>У сервиса должен быть свой конфиг, куда можно прописать порты и прочие параметры (на ваше усмотрение).</p>
+    </li>
+    <li>
+        <p>Логирование.</p>
+    </li>
+    <li>
+        <p>Приветствуется использование известных паттернов при разработке микросервисов на Go (например, dependency
+            injection, graceful shutdown и пр.). Если таковые будут использоваться, то просьба упомянуть его в описании
+            решения.</p>
+    </li>
+</ul>
+
+<p>Решение ожидается в качестве ссылки на репозиторий GitHub, ссылку вставь в поле ответа к этому заданию.<br>
+    <br>
+    <strong>Чтобы проверяющие могли поверить решение нужно, чтобы ваш репозиторий был публичным!</strong>
+</p>
+</p>
