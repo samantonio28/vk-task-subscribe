@@ -1,0 +1,7 @@
+grpc:
+  port: 8080
+  timeout: 5s
+
+logging:
+  file_path: "./logs/access.log"
+  level: "info"
