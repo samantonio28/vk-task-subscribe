@@ -76,10 +76,14 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 				}).Info("Subscription deadline exceeded")
 				return status.Error(codes.DeadlineExceeded, "subscription deadline exceeded")
 			default:
+				s.Logger.WithFields(&logrus.Fields{
+					"key": key,
+				}).Info("Subscription context error")
 				return status.FromContextError(ctx.Err()).Err()
 			}
 
 		case data, ok := <-msgChan:
+			s.Logger.Info("Sending message to subscriber", data)
 			if !ok {
 				s.Logger.WithFields(&logrus.Fields{
 					"key": key,
@@ -100,6 +104,7 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 				}).Error("Failed to send message to subscriber")
 				return status.Errorf(codes.Internal, "failed to send message: %v", err)
 			}
+			s.Logger.Info("message is sent")
 		}
 	}
 }
