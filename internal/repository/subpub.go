@@ -159,18 +159,14 @@ func (s *subscription) Unsubscribe() {
 	if !exists {
 		return
 	}
-
-	// помечаем подписку как удаленную
 	for i, sub := range subs {
 		if sub == s {
 			sub.removed = true
-			// удалим из списка
 			s.sp.subjects[s.subject] = slices.Delete(subs, i, i+1)
 			break
 		}
 	}
 
-	// если подписчиков больше нет, удаляем subject
 	if len(s.sp.subjects[s.subject]) == 0 {
 		delete(s.sp.subjects, s.subject)
 	}

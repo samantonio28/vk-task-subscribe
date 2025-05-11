@@ -19,9 +19,35 @@
 Сервис предоставляет следующие методы:
 
 - `Subscribe` - подписка на события
-- `Unsubscribe` - отписка от событий
 - `Publish` - публикация события
 
 ## Конфигурация
 
 Сервис настроен через файл `config.yaml`.
+
+При написании сервиса я придерживался метода Dependency Injection, когда вызывается 
+конструктор с нужными зависимостями:
+
+```go
+func NewSubPubService(logger *logger.LogrusLogger, subPub repository.SubPub) (*SubPubService, error) {
+    if logger == nil || subPub == nil {
+        return nil, status.Error(codes.InvalidArgument, "logger and subPub must not be nil")
+    }
+
+    return &SubPubService{
+        subPub: subPub,
+        Logger: logger,
+        subs:   make(map[string]map[subpub.PubSub_SubscribeServer]struct{}), 
+    }, nil
+}
+```
+
+При запуске сервиса происходит инициализация зависимостей:
+
+```go
+subPubService, err := usecase.NewSubPubService(logger, subpub)
+if err != nil {
+    fmt.Printf("Failed to initialize subPubService: %v\n", err)
+    return
+}
+```

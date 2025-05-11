@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	subpub "github.com/samantonio28/vk-task-subscribe/internal/delivery"
@@ -18,9 +19,8 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 
 	ctx := stream.Context()
 
-	// Регистрируем подписку
 	s.mu.Lock()
-	if s.subs == nil { // Дополнительная проверка на nil
+	if s.subs == nil {
 		s.subs = make(map[string]map[subpub.PubSub_SubscribeServer]struct{})
 	}
 	if _, exists := s.subs[key]; !exists {
@@ -30,7 +30,6 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 	s.mu.Unlock()
 
 	defer func() {
-		// Удаляем подписку при завершении
 		s.mu.Lock()
 		delete(s.subs[key], stream)
 		if len(s.subs[key]) == 0 {
@@ -39,15 +38,12 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 		s.mu.Unlock()
 	}()
 
-	// Создаем канал для получения сообщений
 	msgChan := make(chan string, 100)
 
-	// Подписываемся на шину событий
 	sub, err := s.subPub.Subscribe(key, func(msg any) {
 		if data, ok := msg.(string); ok {
 			select {
 			case msgChan <- data:
-				// Сообщение отправлено в канал
 			default:
 				s.Logger.WithFields(&logrus.Fields{
 					"key":  key,
@@ -57,6 +53,7 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 		}
 	})
 
+	fmt.Println("6")
 	if err != nil {
 		s.Logger.WithFields(&logrus.Fields{
 			"key":   key,
@@ -66,7 +63,8 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 	}
 	defer sub.Unsubscribe()
 
-	// Обрабатываем входящие сообщения
+	fmt.Println("7")
+
 	for {
 		select {
 		case <-ctx.Done():

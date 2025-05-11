@@ -26,6 +26,6 @@ func NewSubPubService(logger *logger.LogrusLogger, subPub repository.SubPub) (*S
     return &SubPubService{
         subPub: subPub,
         Logger: logger,
-        subs:   make(map[string]map[subpub.PubSub_SubscribeServer]struct{}), // Инициализация основной map
+        subs:   make(map[string]map[subpub.PubSub_SubscribeServer]struct{}), 
     }, nil
 }
