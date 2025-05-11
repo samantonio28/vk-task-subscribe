@@ -27,7 +27,6 @@ func Load() (*Config, error) {
 			return nil, err
 		}
 	} else {
-		// Если файл конфига не найден, используем значения по умолчанию
 		if err := cleanenv.ReadEnv(cfg); err != nil {
 			return nil, err
 		}

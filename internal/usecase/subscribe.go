@@ -68,12 +68,12 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 			case context.Canceled:
 				s.Logger.WithFields(&logrus.Fields{
 					"key": key,
-				}).Debug("Subscription canceled by client")
+				}).Info("Subscription canceled by client")
 				return status.Error(codes.Canceled, "subscription canceled by client")
 			case context.DeadlineExceeded:
 				s.Logger.WithFields(&logrus.Fields{
 					"key": key,
-				}).Debug("Subscription deadline exceeded")
+				}).Info("Subscription deadline exceeded")
 				return status.Error(codes.DeadlineExceeded, "subscription deadline exceeded")
 			default:
 				return status.FromContextError(ctx.Err()).Err()
@@ -83,7 +83,7 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 			if !ok {
 				s.Logger.WithFields(&logrus.Fields{
 					"key": key,
-				}).Debug("Message channel closed for key")
+				}).Info("Message channel closed for key")
 				return status.Error(codes.Aborted, "message channel closed")
 			}
 
@@ -91,7 +91,7 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 				if err == io.EOF {
 					s.Logger.WithFields(&logrus.Fields{
 						"key": key,
-					}).Debug("Client disconnected from key")
+					}).Info("Client disconnected from key")
 					return nil
 				}
 				s.Logger.WithFields(&logrus.Fields{
