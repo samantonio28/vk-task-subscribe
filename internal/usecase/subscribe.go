@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	subpub "github.com/samantonio28/vk-task-subscribe/internal/delivery"
@@ -53,7 +52,6 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 		}
 	})
 
-	fmt.Println("6")
 	if err != nil {
 		s.Logger.WithFields(&logrus.Fields{
 			"key":   key,
@@ -62,8 +60,6 @@ func (s *SubPubService) Subscribe(req *subpub.SubscribeRequest, stream subpub.Pu
 		return status.Errorf(codes.Internal, "failed to subscribe: %v", err)
 	}
 	defer sub.Unsubscribe()
-
-	fmt.Println("7")
 
 	for {
 		select {
